@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Incognito Thoughts</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<div class="container">
+    <h2>Incognito Thoughts 💬</h2>
+
+    <div class="link-box">
+        <span id="shareLink">yourlink.com/anonymous</span>
+        <button onclick="copyLink()">Copy</button>
+    </div>
+
+    <textarea id="msgInput" maxlength="200" placeholder="Say something..."></textarea>
+    <div class="counter" id="counter">0 / 200</div>
+
+    <button onclick="postMessage()">Send Message</button>
+
+    <h3>Messages:</h3>
+    <div id="messages"></div>
+</div>
+
+<!-- Firebase Libraries -->
+<script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database-compat.js"></script>
+
+<script>
+// ----------------------
+// Firebase Config
+// ----------------------
+const firebaseConfig = {
+    apiKey: "AIzaSyCQ5ALS-uatHzLkG_pgKpvbtejdpXdPu9g",
+    authDomain: "ngll-e4ae2.firebaseapp.com",
+    databaseURL: "https://ngll-e4ae2-default-rtdb.asia-southeast1.firebasedatabase.app",
+    projectId: "ngll-e4ae2",
+    storageBucket: "ngll-e4ae2.appspot.com",
+    messagingSenderId: "460805407354",
+    appId: "1:460805407354:web:615ad75b26a69a7872b1c3",
+    measurementId: "G-CC642XKNSS"
+};
+
+firebase.initializeApp(firebaseConfig);
+const db = firebase.database().ref("messages");
+
+// ----------------------
+// Input Counter
+// ----------------------
+const input = document.getElementById("msgInput");
+const counter = document.getElementById("counter");
+input.addEventListener("input", () => {
+    counter.textContent = `${input.value.length} / 200`;
+});
+
+// ----------------------
+// Sanitize
+// ----------------------
+function sanitize(text) {
+    return text.replace(/</g, "&lt;").replace(/>/g, "&gt;");
+}
+
+// ----------------------
+// Post Message
+// ----------------------
+function postMessage() {
+    const message = input.value.trim();
+    if (!message) return alert("Write something first!");
+    const now = new Date().toLocaleString();
+
+    db.push({
+        text: sanitize(message),
+        time: now
+    });
+
+    input.value = "";
+    counter.textContent = "0 / 200";
+}
+
+// ----------------------
+// Realtime Listener
+// ----------------------
+db.on("child_added", snapshot => {
+    const m = snapshot.val();
+    const box = document.getElementById("messages");
+
+    const div = document.createElement("div");
+    div.className = "message";
+    div.innerHTML = `
+        ${m.text}
+        <div class="timestamp">${m.time}</div>
+    `;
+    box.appendChild(div);
+    box.scrollTop = box.scrollHeight;
+});
+
+// ----------------------
+// Copy Link
+// ----------------------
+function copyLink() {
+    const link = document.getElementById("shareLink").textContent;
+    navigator.clipboard.writeText(link);
+    alert("Link copied!");
+}
+</script>
+
+</body>
+</html>
